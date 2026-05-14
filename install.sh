@@ -2,7 +2,7 @@
 #====================================================
 # XrayR 工具箱
 # 适配低内存机器 (128MB+ RAM)
-# Repo: https://github.com/acfrr/XrayR11
+# Repo: https://github.com/dagata1/XrayR-kn
 #====================================================
 
 red='\033[0;31m'
@@ -12,7 +12,7 @@ cyan='\033[0;36m'
 plain='\033[0m'
 
 cur_dir=$(pwd)
-RAW_URL="https://raw.githubusercontent.com/acfrr/XrayR11/master"
+RAW_URL="https://raw.githubusercontent.com/dagata1/XrayR-kn/master"
 
 #=========== 检测 ===========
 [[ $EUID -ne 0 ]] && echo -e "${red}错误：${plain} 必须使用 root 用户运行此脚本！\n" && exit 1
@@ -50,7 +50,7 @@ else
 fi
 echo "架构: ${arch}"
 
-XRAYR_REPO="acfrr/XrayR11"
+XRAYR_REPO="dagata1/XrayR-kn"
 
 #=========== 工具函数 ===========
 install_base() {
@@ -197,7 +197,7 @@ plain='\033[0m'
 XRAYR_BIN="/usr/local/XrayR/XrayR"
 XRAYR_CONFIG="/etc/XrayR/config.yml"
 XRAYR_LOG="/var/log/XrayR/xrayr.log"
-RAW_URL="https://raw.githubusercontent.com/acfrr/XrayR11/master"
+RAW_URL="https://raw.githubusercontent.com/dagata1/XrayR-kn/master"
 
 check_status() {
     if [[ ! -f /etc/systemd/system/XrayR.service ]]; then return 2; fi
