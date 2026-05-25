@@ -2,7 +2,7 @@
 #====================================================
 # XrayR 管理脚本
 # 安装后位于 /usr/bin/XrayR
-# Repo: https://github.com/acfrr/XrayR11
+# Repo: https://github.com/dagata1/XrayR-kn
 #====================================================
 
 red='\033[0;31m'
@@ -15,7 +15,7 @@ plain='\033[0m'
 XRAYR_BIN="/usr/local/XrayR/XrayR"
 XRAYR_CONFIG="/etc/XrayR/config.yml"
 XRAYR_LOG="/var/log/XrayR/xrayr.log"
-RAW_URL="https://raw.githubusercontent.com/acfrr/XrayR11/master"
+RAW_URL="https://raw.githubusercontent.com/dagata1/XrayR-kn/master"
 
 check_status() {
     if [[ ! -f /etc/systemd/system/XrayR.service ]]; then
