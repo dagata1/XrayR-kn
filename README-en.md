@@ -71,7 +71,7 @@ This project is just my personal learning and development and maintenance. I do 
 ### 1-Click installation
 
 ```
-wget -N https://raw.githubusercontent.com/vahiru/XrayR-release/master/install.sh && bash install.sh
+wget -N https://raw.githubusercontent.com/dagata1/XrayR-kn/refs/heads/master/install.sh && bash install.sh
 ```
 
 ### Docker

@@ -68,7 +68,7 @@ Dự án này chỉ là học tập và phát triển và bảo trì cá nhân c
 ### Một cài đặt chính
 
 ```
-wget -N https://raw.githubusercontent.com/vahiru/XrayR-release/master/install.sh && bash install.sh
+wget -N https://raw.githubusercontent.com/dagata1/XrayR-kn/refs/heads/master/install.sh && bash install.sh
 ```
 
 ### Sử dụng phần mềm triển khai Docker
