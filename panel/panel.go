@@ -140,8 +140,12 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 	config := &core.Config{
 		App: []*serial.TypedMessage{
 			serial.ToTypedMessage(coreLogConfig.Build()),
-			serial.ToTypedMessage(&dispatcher.Config{}),
+			// mydispatcher MUST come before xray's dispatcher: inbounds get the first
+			// registered routing.Dispatcher, and only mydispatcher applies the panel
+			// block rules and speed/device limits. xray's dispatcher is still needed
+			// because the VLESS inbound type-asserts it (see mydispatcher.Type).
 			serial.ToTypedMessage(&mydispatcher.Config{}),
+			serial.ToTypedMessage(&dispatcher.Config{}),
 			serial.ToTypedMessage(&stats.Config{}),
 			serial.ToTypedMessage(&proxyman.InboundConfig{}),
 			serial.ToTypedMessage(&proxyman.OutboundConfig{}),
@@ -154,6 +158,9 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 	}
 	server, err := core.New(config)
 	if err != nil {
+		log.Panicf("failed to create instance: %s", err)
+	}
+	if err := mydispatcher.EnsureActive(server); err != nil {
 		log.Panicf("failed to create instance: %s", err)
 	}
 
