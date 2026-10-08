@@ -12,7 +12,7 @@ import (
 	"github.com/xtls/xray-core/features/dns"
 )
 
-// newFakeDNSSniffer Create a Fake DNS metadata sniffer
+// newFakeDNSSniffer Creates a Fake DNS metadata sniffer
 func newFakeDNSSniffer(ctx context.Context) (protocolSnifferWithMetadata, error) {
 	var fakeDNSEngine dns.FakeDNSEngine
 	{
@@ -23,15 +23,14 @@ func newFakeDNSSniffer(ctx context.Context) (protocolSnifferWithMetadata, error)
 	}
 
 	if fakeDNSEngine == nil {
-		errNotInit := newError("FakeDNSEngine is not initialized, but such a sniffer is used").AtError()
+		errNotInit := errors.New("FakeDNSEngine is not initialized, but such a sniffer is used").AtError()
 		return protocolSnifferWithMetadata{}, errNotInit
 	}
 	return protocolSnifferWithMetadata{protocolSniffer: func(ctx context.Context, bytes []byte) (SniffResult, error) {
 		outbounds := session.OutboundsFromContext(ctx)
 		ob := outbounds[len(outbounds)-1]
-		Target := ob.Target
-		if Target.Network == net.Network_TCP || Target.Network == net.Network_UDP {
-			domainFromFakeDNS := fakeDNSEngine.GetDomainFromFakeDNS(Target.Address)
+		if ob.Target.Network == net.Network_TCP || ob.Target.Network == net.Network_UDP {
+			domainFromFakeDNS := fakeDNSEngine.GetDomainFromFakeDNS(ob.Target.Address)
 			if domainFromFakeDNS != "" {
 				errors.LogInfo(ctx, "fake dns got domain: ", domainFromFakeDNS, " for ip: ", ob.Target.Address.String())
 				return &fakeDNSSniffResult{domainName: domainFromFakeDNS}, nil
@@ -41,7 +40,7 @@ func newFakeDNSSniffer(ctx context.Context) (protocolSnifferWithMetadata, error)
 		if ipAddressInRangeValueI := ctx.Value(ipAddressInRange); ipAddressInRangeValueI != nil {
 			ipAddressInRangeValue := ipAddressInRangeValueI.(*ipAddressInRangeOpt)
 			if fkr0, ok := fakeDNSEngine.(dns.FakeDNSEngineRev0); ok {
-				inPool := fkr0.IsIPInIPPool(Target.Address)
+				inPool := fkr0.IsIPInIPPool(ob.Target.Address)
 				ipAddressInRangeValue.addressInRange = &inPool
 			}
 		}
@@ -88,7 +87,8 @@ func (f DNSThenOthersSniffResult) Domain() string {
 }
 
 func newFakeDNSThenOthers(ctx context.Context, fakeDNSSniffer protocolSnifferWithMetadata, others []protocolSnifferWithMetadata) (
-	protocolSnifferWithMetadata, error) { // nolint: unparam
+	protocolSnifferWithMetadata, error,
+) { // nolint: unparam
 	// ctx may be used in the future
 	_ = ctx
 	return protocolSnifferWithMetadata{

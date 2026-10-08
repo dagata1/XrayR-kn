@@ -105,9 +105,18 @@ func readLocalRuleList(path string) (LocalRuleList []api.DetectRule) {
 
 		// read line by line
 		for fileScanner.Scan() {
+			line := strings.TrimSpace(fileScanner.Text())
+			if line == "" {
+				continue // an empty pattern would match (and block) everything
+			}
+			pattern, err := regexp.Compile(line)
+			if err != nil {
+				log.Printf("Skip invalid rule %q in %s: %s", line, path, err)
+				continue
+			}
 			LocalRuleList = append(LocalRuleList, api.DetectRule{
 				ID:      -1,
-				Pattern: regexp.MustCompile(fileScanner.Text()),
+				Pattern: pattern,
 			})
 		}
 		// handle first encountered error while reading
@@ -285,18 +294,45 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 	routes := c.resp.Load().(*serverConfig).Routes
 
-	ruleList := c.LocalRuleList
+	// Copy, so appending never writes into LocalRuleList's backing array.
+	ruleList := make([]api.DetectRule, len(c.LocalRuleList), len(c.LocalRuleList)+len(routes))
+	copy(ruleList, c.LocalRuleList)
 
 	for i := range routes {
-		if routes[i].Action == "block" {
-			ruleList = append(ruleList, api.DetectRule{
-				ID:      i,
-				Pattern: regexp.MustCompile(strings.Join(routes[i].Match, "|")),
-			})
+		if routes[i].Action != "block" {
+			continue
 		}
+		pattern, err := compileRouteMatch(routes[i].Match)
+		if err != nil {
+			log.Printf("Skip block route %d (id %d): %s", i, routes[i].Id, err)
+			continue
+		}
+		ruleList = append(ruleList, api.DetectRule{
+			ID:      i,
+			Pattern: pattern,
+		})
 	}
 
 	return &ruleList, nil
+}
+
+// compileRouteMatch joins the non-empty match entries of a block route into one
+// regexp. Empty entries are dropped: "a||b" would match every destination.
+func compileRouteMatch(match []string) (*regexp.Regexp, error) {
+	parts := make([]string, 0, len(match))
+	for _, m := range match {
+		if m = strings.TrimSpace(m); m != "" {
+			parts = append(parts, m)
+		}
+	}
+	if len(parts) == 0 {
+		return nil, errors.New("empty match")
+	}
+	pattern, err := regexp.Compile(strings.Join(parts, "|"))
+	if err != nil {
+		return nil, fmt.Errorf("invalid match regexp %q: %w", strings.Join(parts, "|"), err)
+	}
+	return pattern, nil
 }
 
 // ReportNodeStatus implements the API interface
